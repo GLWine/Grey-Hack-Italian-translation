@@ -18,6 +18,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Verify source path
+        run: |
+          if [ ! -f "${{ github.event.inputs.source_path }}" ]; then
+            echo "Source file does not exist: ${{ github.event.inputs.source_path }}"
+            exit 1
+          fi
+
       - name: Create directories
         run: |
           mkdir -p "Appdata/LocalLow/Loading Home/Grey Hack/Translation"
@@ -26,12 +33,24 @@ jobs:
         run: |
           cp "${{ github.event.inputs.source_path }}" "Appdata/LocalLow/Loading Home/Grey Hack/Translation/custom_lang.json"
 
-      - name: Push changes
+      - name: Configure Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Debug Git Status
+        run: |
+          git status
+
+      - name: Commit and push changes
+        run: |
           git add .
+          git status
           git commit -m "Create directories and add custom_lang.json for new release"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Debug Post Push
+        run: |
+          echo "Completed Git operations"
