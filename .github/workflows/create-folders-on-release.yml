@@ -1,0 +1,36 @@
+name: Create folders and add file on release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  create-folders-and-add-file:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Extract source path from release description
+        id: extract-path
+        run: |
+          echo "::set-output name=source_path::$(echo "${{ github.event.release.body }}" | grep -oP '(?<=Source Path: ).*')"
+
+      - name: Create directories
+        run: |
+          mkdir -p "Appdata/LocalLow/Loading Home/Grey Hack/Translation"
+
+      - name: Copy file to new directory
+        run: |
+          cp "${{ steps.extract-path.outputs.source_path }}" "Appdata/LocalLow/Loading Home/Grey Hack/Translation/custom_lang.json"
+
+      - name: Push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Create directories and add custom_lang.json for new release"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
